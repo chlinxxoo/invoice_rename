@@ -35,7 +35,14 @@ def process_pdf_directory(directory_path, dumpTxt, dumpTotalCount):
     totalCount = 0
     
     # 处理所有PDF文件
-    for pdf_file in directory.glob("*.pdf"):
+    pdf_files = list(directory.glob("*.pdf"))
+    if not pdf_files:
+        print(f"在目录 {directory_path} 中没有找到PDF文件")
+        if getattr(sys, 'frozen', False):
+            input("按回车键退出...")
+        return
+
+    for pdf_file in pdf_files:
         print(f"正在处理: {pdf_file.name}")
         
         # 提取文本
@@ -130,31 +137,48 @@ def process_pdf_directory(directory_path, dumpTxt, dumpTotalCount):
         else:
             print(f"无法从 {pdf_file.name} 提取文本")
 
-    if dumpTotalCount:
+    if dumpTotalCount and totalCount > 0:
         # 将汇总金额写入文件
         print(f"汇总金额: {totalCount}")
         try:
-            amount_file = pdf_file.parent / f"{totalCount:.2f}.txt"
+            amount_file = directory / f"{totalCount:.2f}.txt"
             with open(amount_file, "w", encoding="utf-8") as f:
                 f.write(f"汇总金额: {totalCount}")
             print(f"汇总金额已保存到: {amount_file}")
         except Exception as e:
             print(f"保存汇总金额失败: {str(e)}")
 
-
+    # 如果是打包后的可执行文件，等待用户按键后退出
+    if getattr(sys, 'frozen', False):
+        input("按回车键退出...")
 
 if __name__ == "__main__":
+    # 获取程序运行路径
+    if getattr(sys, 'frozen', False):
+        # 如果是打包后的可执行文件
+        app_path = os.path.dirname(sys.executable)
+    else:
+        # 如果是Python脚本
+        app_path = os.path.dirname(os.path.abspath(__file__))
 
-    parser = argparse.ArgumentParser(description='')
+    parser = argparse.ArgumentParser(description='发票处理工具')
     parser.add_argument('--pdfFolder', action="store", dest="pdfFolder", help='发票文件夹路径')
     parser.add_argument('--dumpTxt', action="store_true", dest="dumpTxt", help='文本全输出')
     parser.add_argument('--dumpTotalCount', action="store_true", dest="dumpTotalCount", help='汇总金额')
 
-    results = parser.parse_args()
+    # 解析命令行参数
+    if len(sys.argv) > 1:
+        results = parser.parse_args()
+        pdf_folder = results.pdfFolder
+        dump_txt = results.dumpTxt
+        dump_total = results.dumpTotalCount
+    else:
+        # 如果没有参数，使用默认值
+        pdf_folder = app_path
+        dump_txt = False
+        dump_total = True
 
-    if not results.pdfFolder:
-        results.pdfFolder = os.path.dirname(os.path.abspath(__file__))
-
+    print(f"发票文件夹路径: {pdf_folder}")
     print("开始处理PDF文件...")
-    process_pdf_directory(results.pdfFolder, results.dumpTxt, results.dumpTotalCount)
+    process_pdf_directory(pdf_folder, dump_txt, dump_total)
     print("处理完成！") 
