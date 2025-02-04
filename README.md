@@ -45,7 +45,7 @@ python extract_invoice.py [--pdfFolder 发票文件夹路径] [--dumpTxt] [--dum
 ```
 
 参数说明：
-- `--pdfFolder`：必填，指定PDF发票文件所在的文件夹路径
+- `--pdfFolder`：可选，指定PDF发票文件所在的文件夹路径（默认值：文件当前所在路径）
 - `--dumpTxt`：可选，输出PDF文件的完整文本内容
 - `--dumpTotalCount`：可选，计算并输出所有发票的总金额
 
