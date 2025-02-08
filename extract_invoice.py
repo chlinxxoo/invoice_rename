@@ -15,7 +15,7 @@ def extract_text_from_pdf(pdf_path):
         with pdfplumber.open(pdf_path) as pdf:
             text = ""
             for page in pdf.pages:
-                text += (page.extract_text() or "").replace(" ", "")
+                text += (page.extract_text() or "")
             return text.strip()
     except Exception as e:
         print(f"处理文件 {pdf_path} 时发生错误: {str(e)}")
@@ -62,35 +62,35 @@ def process_pdf_directory(directory_path, dumpTxt, dumpTotalCount):
                         isDetail = True
                         continue
                 else:
-                    m = re.search(r'\*(\w+)\*', line)
+                    m = re.search(r'\*[^\s]*\*([^\s]+)', line)
                     if m:
-                        detail_name = m.group(1)
+                        detail_name = m.group(1).replace(" ", "")
                     isDetail = False
                     continue
 
                 if invoice_number == None:
                     m = re.search(r'.*发票号码[:：]\s*(.*)', line)
                     if m:
-                        invoice_number = m.group(1)
+                        invoice_number = m.group(1).replace(" ", "")
                     continue
 
                 if invoice_date == None:
                     m = re.search(r'.*开票日期[:：]\s*(.*)', line)
                     if m:
-                        invoice_date = m.group(1)
+                        invoice_date = m.group(1).replace(" ", "")
                         continue
 
                 
                 if invoice_company == None:
                     m = re.search(r'.*?名\s*称[:：]\s*(.*?公司)', line)
                     if m:
-                        invoice_company = m.group(1)
+                        invoice_company = m.group(1).replace(" ", "")
                     continue
 
                 if invoice_amount == None:
-                    m = re.search(r'.*[(（]小写[)）]\s*¥\s*(.*)', line)
+                    m = re.search(r'.*[(（]小写[)）]\s*[¥￥]\s*(.*)', line)
                     if m:
-                        invoice_amount = m.group(1)
+                        invoice_amount = m.group(1).replace(" ", "")
                         totalCount += float(invoice_amount)
                     continue
 
@@ -98,7 +98,7 @@ def process_pdf_directory(directory_path, dumpTxt, dumpTotalCount):
             # 根据发票信息构建新文件名
             if invoice_number and invoice_date and invoice_amount and invoice_company:
                 # 提取年月日
-                print(invoice_date)
+                # print(invoice_date)
                 match = re.search(r'.*(\d{4})年\s*(\d{2})月\s*(\d{2})日.*', invoice_date)
                 if match:
                     year, month, day = match.groups()
@@ -114,7 +114,7 @@ def process_pdf_directory(directory_path, dumpTxt, dumpTotalCount):
                 try:
                     # 重命名文件
                     pdf_file.rename(target_path)
-                    print(f"文件已重命名为: {new_name}")
+                    # print(f"文件已重命名为: {new_name}")
                 except Exception as e:
                     print(f"重命名失败: {str(e)}")
             else:
